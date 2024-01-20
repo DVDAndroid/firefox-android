@@ -37,4 +37,10 @@
             android:targetPackage="org.mozilla.fenix"
             android:targetClass="org.mozilla.fenix.IntentReceiverActivity" />
     </shortcut>
+
+    <share-target android:targetClass="org.mozilla.fenix.HomeActivity">
+        <data android:mimeType="text/plain"/>
+        <category android:name="org.mozilla.fenix.SEND_TAB_TO_DEVICE_CATEGORY"/>
+    </share-target>
+
 </shortcuts>

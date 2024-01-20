@@ -5,22 +5,24 @@
 package org.mozilla.fenix.components
 
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.VisibleForTesting.Companion.PRIVATE
+import androidx.core.app.Person
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.drawable.IconCompat
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import mozilla.components.browser.storage.sync.PlacesBookmarksStorage
 import mozilla.components.browser.storage.sync.PlacesHistoryStorage
 import mozilla.components.browser.storage.sync.RemoteTabsStorage
-import mozilla.components.concept.sync.AccountObserver
-import mozilla.components.concept.sync.AuthType
-import mozilla.components.concept.sync.DeviceCapability
-import mozilla.components.concept.sync.DeviceConfig
-import mozilla.components.concept.sync.DeviceType
-import mozilla.components.concept.sync.OAuthAccount
+import mozilla.components.concept.sync.*
 import mozilla.components.feature.accounts.push.FxaPushSupportFeature
 import mozilla.components.feature.accounts.push.SendTabFeature
+import mozilla.components.feature.accounts.push.intent.SendToDeviceIntentProcessor
 import mozilla.components.feature.syncedtabs.SyncedTabsAutocompleteProvider
 import mozilla.components.feature.syncedtabs.storage.SyncedTabsStorage
 import mozilla.components.lib.crash.CrashReporter
@@ -192,6 +194,7 @@ class BackgroundServices(
         SendTabFeature(accountManager) { device, tabs ->
             notificationManager.showReceivedTabs(context, device, tabs)
         }
+//        accountManager.register(DevicesAccountObserver(context))
 
         SyncedTabsIntegration(context, accountManager).launch()
 
@@ -248,9 +251,9 @@ internal class TelemetryAccountObserver(
 
             // User signed-in into an FxA account shared from another locally installed app using the copy flow.
             AuthType.MigratedCopy,
-            // User signed-in into an FxA account shared from another locally installed app using the reuse flow.
+                // User signed-in into an FxA account shared from another locally installed app using the reuse flow.
             AuthType.MigratedReuse,
-            // Account restored from a hydrated state on disk (e.g. during startup).
+                // Account restored from a hydrated state on disk (e.g. during startup).
             AuthType.Existing,
             -> {
                 // no-op, events not recorded in Glean
@@ -261,5 +264,84 @@ internal class TelemetryAccountObserver(
     override fun onLoggedOut() {
         SyncAuth.signOut.record(NoExtras())
         context.settings().signedInFxaAccount = false
+    }
+}
+
+internal class DevicesAccountObserver(
+    private val context: Context,
+) : AccountObserver {
+
+    override fun onReady(authenticatedAccount: OAuthAccount?) {
+        super.onReady(authenticatedAccount)
+        if (authenticatedAccount == null) return
+
+        var constellationState = authenticatedAccount.deviceConstellation().state()
+        if (constellationState == null) {
+            runBlocking { authenticatedAccount.deviceConstellation().refreshDevices() }
+            constellationState = authenticatedAccount.deviceConstellation().state()
+            if (constellationState == null) {
+                println("AAAAAAAAAAAAAAAA constellation state is null")
+                return
+            }
+        }
+
+        val devices = constellationState
+            .also {
+                println("AAAAAAAAAAAAAAAA constellation state: $it")
+            }
+            .otherDevices.also {
+                println("AAAAAAAAAAAAAAAA other devices: $it")
+            }
+            .filter { DeviceCapability.SEND_TAB in it.capabilities }
+            .also {
+                println("AAAAAAAAAAAAAAAA filtered devices: $it")
+            }
+            .takeIf { it.isNotEmpty() }
+            .also {
+                println("AAAAAAAAAAAAAAAA take if: $it")
+            }
+
+        if (devices.isNullOrEmpty()) return
+
+        val shortcuts = buildList {
+            addAll(devices.map { buildShortcut(it) })
+            if (devices.size > 1) {
+                add(buildShortcut(null))
+            }
+        }
+        if (shortcuts.isEmpty()) return
+
+        ShortcutManagerCompat.removeAllDynamicShortcuts(context)
+        ShortcutManagerCompat.addDynamicShortcuts(context, shortcuts)
+    }
+
+    override fun onLoggedOut() {
+        super.onLoggedOut()
+
+        ShortcutManagerCompat.removeAllDynamicShortcuts(context)
+    }
+
+    private fun buildShortcut(device: Device?): ShortcutInfoCompat {
+        val intent = Intent(SendToDeviceIntentProcessor.SEND_TAB_TO_DEVICE_ACTION).apply {
+            addCategory(SendToDeviceIntentProcessor.SEND_TAB_TO_DEVICE_CATEGORY)
+        }
+
+        val icon = when (device?.deviceType) {
+            null -> R.drawable.mozac_ic_select_all
+            DeviceType.MOBILE -> R.drawable.mozac_ic_device_mobile_24
+            else -> R.drawable.mozac_ic_device_desktop_24
+        }
+
+        return ShortcutInfoCompat.Builder(context, device?.id ?: "<all>")
+            .setShortLabel(device?.displayName ?: context.getString(R.string.sync_send_to_all))
+            .setIcon(IconCompat.createWithResource(context, icon))
+            .setIntent(intent)
+            .setPerson(Person.Builder()
+                .setName(device?.id ?: "<all>")
+//                .setKey(device?.id ?: "<all>")
+                .build())
+            .setCategories(setOf(SendToDeviceIntentProcessor.SEND_TAB_TO_DEVICE_CATEGORY))
+//            .setExcludedFromSurfaces(ShortcutInfoCompat.SURFACE_LAUNCHER)
+            .build()
     }
 }

@@ -10,9 +10,15 @@
 package org.mozilla.fenix.components
 
 import android.content.Context
+import android.content.Intent
+import androidx.core.app.PendingIntentCompat.send
 import mozilla.components.browser.state.store.BrowserStore
 import mozilla.components.concept.engine.Engine
+import mozilla.components.concept.sync.TabData
+import mozilla.components.feature.accounts.push.SendTabUseCases
+import mozilla.components.feature.accounts.push.intent.SendToDeviceIntentProcessor
 import mozilla.components.feature.customtabs.CustomTabIntentProcessor
+import mozilla.components.feature.intent.processing.IntentProcessor
 import mozilla.components.feature.intent.processing.TabIntentProcessor
 import mozilla.components.feature.pwa.ManifestStorage
 import mozilla.components.feature.pwa.intent.WebAppIntentProcessor
@@ -38,6 +44,7 @@ class IntentProcessors(
     private val tabsUseCases: TabsUseCases,
     private val customTabsUseCases: CustomTabsUseCases,
     private val searchUseCases: SearchUseCases,
+    private val sendTabUseCases: SendTabUseCases,
     private val manifestStorage: ManifestStorage,
     private val engine: Engine,
 ) {
@@ -84,5 +91,9 @@ class IntentProcessors(
 
     val passwordManagerIntentProcessor by lazyMonitored {
         PasswordManagerIntentProcessor()
+    }
+
+    val sendToDeviceIntentProcessor by lazyMonitored {
+        SendToDeviceIntentProcessor(sendTabUseCases)
     }
 }

@@ -32,6 +32,10 @@ import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.Person
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.drawable.IconCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
@@ -58,6 +62,9 @@ import mozilla.components.browser.state.state.WebExtensionState
 import mozilla.components.concept.engine.EngineSession
 import mozilla.components.concept.engine.EngineView
 import mozilla.components.concept.storage.HistoryMetadataKey
+import mozilla.components.concept.sync.Device
+import mozilla.components.concept.sync.DeviceType
+import mozilla.components.feature.accounts.push.intent.SendToDeviceIntentProcessor
 import mozilla.components.feature.contextmenu.DefaultSelectionActionDelegate
 import mozilla.components.feature.media.ext.findActiveMediaTab
 import mozilla.components.feature.privatemode.notification.PrivateNotificationFeature
@@ -428,6 +435,17 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
                 // If we're authenticated, kick-off a sync and a device state refresh.
                 components.backgroundServices.accountManager.authenticatedAccount()?.let {
                     components.backgroundServices.accountManager.syncNow(reason = SyncReason.Startup)
+
+                    val shortcuts= components.backgroundServices.accountManager.authenticatedAccount()
+                        ?.deviceConstellation()
+                        ?.state()
+                        ?.otherDevices
+                        ?.map {
+                            buildShortcut(it)
+                        } ?: return@launch
+
+                    ShortcutManagerCompat.removeAllDynamicShortcuts(applicationContext)
+                    ShortcutManagerCompat.addDynamicShortcuts(applicationContext, shortcuts)
                 }
             }
         }
@@ -441,6 +459,31 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         components.notificationsDelegate.bindToActivity(this)
 
         StartupTimeline.onActivityCreateEndHome(this) // DO NOT MOVE ANYTHING BELOW HERE.
+    }
+
+    private fun buildShortcut(device: Device?): ShortcutInfoCompat {
+//        val intent = Intent(SendToDeviceIntentProcessor.SEND_TAB_TO_DEVICE_ACTION).apply {
+//            addCategory(SendToDeviceIntentProcessor.SEND_TAB_TO_DEVICE_CATEGORY)
+//        }
+
+//        val icon = when (device?.deviceType) {
+//            null -> R.drawable.mozac_ic_select_all
+//            DeviceType.MOBILE -> R.drawable.mozac_ic_device_mobile_24
+//            else -> R.drawable.mozac_ic_device_desktop_24
+//        }
+
+        return ShortcutInfoCompat.Builder(applicationContext, device?.id ?: "<all>")
+            .setShortLabel(device?.displayName ?: applicationContext.getString(R.string.sync_send_to_all))
+//            .setIcon(IconCompat.createWithResource(applicationContext, icon))
+//            .setIntent(intent)
+            .setPerson(
+                Person.Builder()
+                .setName(device?.id ?: "<all>")
+//                .setKey(device?.id ?: "<all>")
+                .build())
+//            .setCategories(setOf(SendToDeviceIntentProcessor.SEND_TAB_TO_DEVICE_CATEGORY))
+//            .setExcludedFromSurfaces(ShortcutInfoCompat.SURFACE_LAUNCHER)
+            .build()
     }
 
     /**

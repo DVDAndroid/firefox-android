@@ -660,6 +660,7 @@ dependencies {
     implementation ComponentsDependencies.androidx_data_store_preferences
     implementation FenixDependencies.protobuf_javalite
     implementation ComponentsDependencies.google_material
+//    implementation ComponentsDependencies.androidx_sharetarget
 
     implementation FenixDependencies.adjust
     implementation FenixDependencies.installreferrer // Required by Adjust

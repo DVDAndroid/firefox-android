@@ -106,6 +106,26 @@
             </intent-filter>
         </activity-alias>
 
+<!--        <activity-alias-->
+<!--            android:name="org.mozilla.fenix.SendTabToDeviceActivity"-->
+<!--            android:exported="true"-->
+<!--            android:targetActivity=".IntentReceiverActivity">-->
+
+<!--            &lt;!&ndash; Expose the intent to send a tab to another device &ndash;&gt;-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.SEND" />-->
+<!--                <action android:name="org.mozilla.fenix.SEND_TAB_TO_DEVICE_ACTION" />-->
+
+<!--                <category android:name="android.intent.category.DEFAULT" />-->
+<!--                <category android:name="org.mozilla.fenix.SEND_TAB_TO_DEVICE_CATEGORY" />-->
+<!--            </intent-filter>-->
+
+<!--            &lt;!&ndash; Direct Share backwards compatibility &ndash;&gt;-->
+<!--&lt;!&ndash;            <meta-data&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:name="android.service.chooser.chooser_target_service"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:value="androidx.sharetarget.ChooserTargetServiceCompat" />&ndash;&gt;-->
+<!--        </activity-alias>-->
+
         <activity
             android:name=".HomeActivity"
             android:theme="@style/SplashScreen"
