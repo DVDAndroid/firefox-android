@@ -42,6 +42,7 @@ dependencies {
     implementation project(':support-base')
     implementation project(':concept-push')
     implementation project(':feature-push')
+    implementation project(':feature-intent')
 
     implementation ComponentsDependencies.androidx_work_runtime
     implementation ComponentsDependencies.androidx_lifecycle_process

@@ -164,6 +164,20 @@
         <activity android:name=".home.mozonline.PrivacyContentDisplayActivity"
                 android:exported="false"/>
 
+        <activity android:name=".shortcutest.ShortcutTest"
+                  android:label="firefox shortcut test"
+                android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".customtabs.ExternalAppBrowserActivity"
             android:autoRemoveFromRecents="false"
@@ -247,6 +261,12 @@
                 <action android:name="mozilla.components.feature.pwa.VIEW_PWA" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="https" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="mozilla.components.feature.accounts.push.SEND_TAB_TO_DEVICE_ACTION" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="org.mozilla.fenix.SEND_TAB_TO_DEVICE_CATEGORY" />
             </intent-filter>
 
             <intent-filter>

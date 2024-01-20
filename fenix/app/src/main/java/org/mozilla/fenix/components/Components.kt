@@ -81,6 +81,7 @@ class Components(private val context: Context) {
             context,
             core.engine,
             core.store,
+            backgroundServices.accountManager,
             core.webAppShortcutManager,
             core.topSitesStorage,
             core.bookmarksStorage,
@@ -107,6 +108,7 @@ class Components(private val context: Context) {
             useCases.tabsUseCases,
             useCases.customTabsUseCases,
             useCases.searchUseCases,
+            useCases.sendTabUseCase,
             core.webAppManifestStorage,
             core.engine,
         )

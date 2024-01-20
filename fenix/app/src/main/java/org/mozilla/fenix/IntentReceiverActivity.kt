@@ -80,7 +80,7 @@ class IntentReceiverActivity : Activity() {
             Events.openedExtPdf.record(Events.OpenedExtPdfExtra(referrerIsFenix))
         }
 
-        val processor = getIntentProcessors(private).firstOrNull { it.process(intent) }
+        val processor = getIntentProcessors(/*private*/).firstOrNull { it.process(intent) }
         val intentProcessorType = components.intentProcessors.getType(processor)
 
         launch(intent, intentProcessorType)
@@ -103,27 +103,29 @@ class IntentReceiverActivity : Activity() {
         finish() // must finish() after starting the other activity
     }
 
-    private fun getIntentProcessors(private: Boolean): List<IntentProcessor> {
-        val modeDependentProcessors = if (private) {
-            listOf(
-                components.intentProcessors.privateCustomTabIntentProcessor,
-                components.intentProcessors.privateIntentProcessor,
-            )
-        } else {
-            Events.openedLink.record(Events.OpenedLinkExtra("NORMAL"))
-            listOf(
-                components.intentProcessors.customTabIntentProcessor,
-                components.intentProcessors.intentProcessor,
-            )
-        }
+    private fun getIntentProcessors(/*private: Boolean*/): List<IntentProcessor> {
+//        val modeDependentProcessors = if (private) {
+//            listOf(
+//                components.intentProcessors.privateCustomTabIntentProcessor,
+//                components.intentProcessors.privateIntentProcessor,
+//            )
+//        } else {
+//            Events.openedLink.record(Events.OpenedLinkExtra("NORMAL"))
+//            listOf(
+//                components.intentProcessors.customTabIntentProcessor,
+//                components.intentProcessors.intentProcessor,
+//            )
+//        }
 
-        return components.intentProcessors.externalAppIntentProcessors +
-            components.intentProcessors.fennecPageShortcutIntentProcessor +
-            components.intentProcessors.externalDeepLinkIntentProcessor +
-            components.intentProcessors.webNotificationsIntentProcessor +
-            components.intentProcessors.passwordManagerIntentProcessor +
-            modeDependentProcessors +
-            NewTabShortcutIntentProcessor()
+//        return components.intentProcessors.externalAppIntentProcessors +
+//            components.intentProcessors.fennecPageShortcutIntentProcessor +
+//            components.intentProcessors.externalDeepLinkIntentProcessor +
+//            components.intentProcessors.webNotificationsIntentProcessor +
+//            components.intentProcessors.passwordManagerIntentProcessor +
+//            components.intentProcessors.sendToDeviceIntentProcessor +
+//            modeDependentProcessors +
+//            NewTabShortcutIntentProcessor()
+        return listOf(components.intentProcessors.sendToDeviceIntentProcessor)
     }
 
     private fun addReferrerInformation(intent: Intent) {

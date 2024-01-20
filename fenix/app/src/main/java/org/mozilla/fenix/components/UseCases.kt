@@ -11,6 +11,7 @@ import mozilla.components.concept.engine.Engine
 import mozilla.components.concept.fetch.Client
 import mozilla.components.concept.storage.BookmarksStorage
 import mozilla.components.concept.storage.HistoryStorage
+import mozilla.components.feature.accounts.push.SendTabUseCases
 import mozilla.components.feature.app.links.AppLinksUseCases
 import mozilla.components.feature.contextmenu.ContextMenuUseCases
 import mozilla.components.feature.downloads.DownloadsUseCases
@@ -24,6 +25,7 @@ import mozilla.components.feature.tabs.CustomTabsUseCases
 import mozilla.components.feature.tabs.TabsUseCases
 import mozilla.components.feature.top.sites.TopSitesStorage
 import mozilla.components.feature.top.sites.TopSitesUseCases
+import mozilla.components.service.fxa.manager.FxaAccountManager
 import mozilla.components.support.locale.LocaleManager
 import mozilla.components.support.locale.LocaleUseCases
 import org.mozilla.fenix.components.bookmarks.BookmarksUseCase
@@ -40,6 +42,7 @@ class UseCases(
     private val context: Context,
     private val engine: Engine,
     private val store: BrowserStore,
+    private val accountManager: FxaAccountManager,
     private val shortcutManager: WebAppShortcutManager,
     private val topSitesStorage: TopSitesStorage,
     private val bookmarksStorage: BookmarksStorage,
@@ -118,4 +121,6 @@ class UseCases(
         }
         WallpapersUseCases(context, appStore, client, rootStorageDirectory, currentLocale)
     }
+
+    val sendTabUseCase by lazyMonitored { SendTabUseCases(accountManager) }
 }
